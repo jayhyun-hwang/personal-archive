@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/jaeyo/personal-archive/common"
 	"github.com/jaeyo/personal-archive/models"
 	"github.com/jaeyo/personal-archive/repositories"
 	"github.com/pkg/errors"
@@ -10,7 +11,7 @@ import (
 
 type ArticleService interface {
 	Initialize()
-	CreateByURL(url string, tags []string) (*models.Article, error)
+	CreateByURL(url string, tags common.Strings) (*models.Article, error)
 	Search(keyword string, offset, limit int) ([]*models.Article, int64, error)
 	UpdateTitle(id int64, newTitle string) error
 	UpdateTags(id int64, tags []string) error
@@ -23,6 +24,7 @@ type articleService struct {
 	articleRepository       repositories.ArticleRepository
 	articleTagRepository    repositories.ArticleTagRepository
 	articleSearchRepository repositories.ArticleSearchRepository
+	tagRepository           repositories.TagRepository
 }
 
 var GetArticleService = func() func() ArticleService {
@@ -35,6 +37,7 @@ var GetArticleService = func() func() ArticleService {
 				articleRepository:       repositories.GetArticleRepository(),
 				articleTagRepository:    repositories.GetArticleTagRepository(),
 				articleSearchRepository: repositories.GetArticleSearchRepository(),
+				tagRepository:           repositories.GetTagRepository(),
 			}
 		})
 		return instance
@@ -47,13 +50,26 @@ func (s *articleService) Initialize() {
 	}
 }
 
-func (s *articleService) CreateByURL(url string, tags []string) (*models.Article, error) {
+func (s *articleService) CreateByURL(url string, tagNames common.Strings) (*models.Article, error) {
 	article, err := s.articleGenerator.NewArticle(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate new article")
 	}
 
-	// TODO: attach tags
+	tags, err := s.tagRepository.FindByNames(tagNames)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find tags")
+	}
+
+	toBeCreatedTagNames := tagNames.FilterNotContained(tags.ExtractTagNames())
+	for _, tagName := range toBeCreatedTagNames {
+		tags = append(tags, &models.Tag{
+			Name:       tagName,
+			IsFavorite: false,
+		})
+	}
+
+	article.Tags = tags
 
 	if err = s.articleRepository.Save(article); err != nil {
 		return nil, errors.Wrap(err, "failed to save article")

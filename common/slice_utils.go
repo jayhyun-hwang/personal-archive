@@ -40,3 +40,13 @@ func (s Strings) Contain(v string) bool {
 	}
 	return false
 }
+
+func (s Strings) FilterNotContained(t Strings) Strings {
+	result := []string{}
+	for _, item := range s {
+		if !t.Contain(item) {
+			result = append(result, item)
+		}
+	}
+	return result
+}

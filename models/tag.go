@@ -9,3 +9,13 @@ type Tag struct {
 func (t *Tag) TableName() string {
 	return "tag"
 }
+
+type Tags []*Tag
+
+func (t Tags) ExtractTagNames() []string {
+	names := []string{}
+	for _, tag := range t {
+		names = append(names, tag.Name)
+	}
+	return names
+}

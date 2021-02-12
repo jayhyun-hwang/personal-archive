@@ -45,19 +45,3 @@ func (t ArticleTags) ExtractIDs() []int64 {
 	return ids
 }
 
-type Tags []string
-
-func (t Tags) FilterExcluded(articleTags ArticleTags) Tags {
-	var result Tags
-	for _, tag := range t {
-		if !articleTags.ContainTag(tag) {
-			result = append(result, tag)
-		}
-	}
-	return result
-}
-
-type ArticleTagCountDTO struct {
-	Tag   string `gorm:"column:tag" json:"tag"`
-	Count int    `gorm:"column:cnt" json:"count"`
-}
