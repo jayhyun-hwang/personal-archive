@@ -22,15 +22,12 @@ func (t Tags) ExtractTagNames() []string {
 	return names
 }
 
-func (t Tags) DivideByContained(tagNames common.Strings) (Tags, Tags) {
-	contained := Tags{}
-	notContained := Tags{}
+func (t Tags) Filter(tagNames common.Strings) Tags {
+	filtered := Tags{}
 	for _, tag := range t {
 		if tagNames.Contain(tag.Name) {
-			contained = append(contained, tag)
-		} else {
-			notContained = append(notContained, tag)
+			filtered = append(filtered, tag)
 		}
 	}
-	return contained, notContained
+	return filtered
 }

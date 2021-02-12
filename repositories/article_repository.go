@@ -3,11 +3,13 @@ package repositories
 import (
 	"github.com/jaeyo/personal-archive/internal"
 	"github.com/jaeyo/personal-archive/models"
+	"github.com/pkg/errors"
 	"sync"
 )
 
 type ArticleRepository interface {
 	Save(article *models.Article) error
+	SaveTags(article *models.Article, tags models.Tags) error
 	FindAllWithPage(offset, limit int) (models.Articles, int64, error)
 	FindByIDsWithPage(ids []int64, offset, limit int) (models.Articles, int64, error)
 	FindByIDs(ids []int64) (models.Articles, error)
@@ -54,6 +56,14 @@ func (r *articleRepository) Save(article *models.Article) error {
 		return r.articleSearchRepository.Update(article)
 	}
 
+}
+
+func (r *articleRepository) SaveTags(article *models.Article, tags models.Tags) error {
+	if err := r.database.Model(article).Association("Tags").Clear(); err != nil {
+		return errors.Wrap(err, "failed to clear tags")
+	}
+	article.Tags = tags
+	return r.Save(article)
 }
 
 func (r *articleRepository) FindAllWithPage(offset, limit int) (models.Articles, int64, error) {

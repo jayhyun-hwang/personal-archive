@@ -119,26 +119,21 @@ func (s *articleService) UpdateTags(id int64, tags common.Strings) error {
 		return errors.Wrap(err, "failed to get article")
 	}
 
+	updatedTags := models.Tags{}
 
-	toBePreserved, toBeDeleted := article.Tags.DivideByContained(tags)
-	toBeAdded := // TODO IMME
-	//toBeAdded := models.Tags(tags).FilterExcluded(article.Tags)
+	toBePreserved := article.Tags.Filter(tags)
+	updatedTags = append(updatedTags, toBePreserved...)
 
-	if len(toBeDeleted) > 0 {
-		if err := s.articleTagRepository.Delete(toBeDeleted); err != nil {
-			return errors.Wrap(err, "failed to delete unused article tags")
-		}
+	toBeAdded := tags.FilterNotContained(article.Tags.ExtractTagNames())
+	for _, tagName := range toBeAdded {
+		updatedTags = append(updatedTags, &models.Tag{
+			Name:       tagName,
+			IsFavorite: false,
+		})
 	}
 
-	article.Tags = toBePreserved
-
-	if len(toBeAdded) > 0 {
-		for _, tag := range toBeAdded {
-			article.Tags = append(article.Tags, &models.ArticleTag{Tag: tag})
-		}
-		if err := s.articleRepository.Save(article); err != nil {
-			return errors.Wrap(err, "failed to save article")
-		}
+	if err := s.articleRepository.SaveTags(article, updatedTags); err != nil {
+		return errors.Wrap(err, "failed to save tags")
 	}
 
 	return nil
