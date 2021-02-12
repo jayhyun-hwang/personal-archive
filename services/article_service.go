@@ -48,10 +48,12 @@ func (s *articleService) Initialize() {
 }
 
 func (s *articleService) CreateByURL(url string, tags []string) (*models.Article, error) {
-	article, err := s.articleGenerator.NewArticle(url, tags)
+	article, err := s.articleGenerator.NewArticle(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate new article")
 	}
+
+	// TODO: attach tags
 
 	if err = s.articleRepository.Save(article); err != nil {
 		return nil, errors.Wrap(err, "failed to save article")

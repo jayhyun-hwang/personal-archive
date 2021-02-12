@@ -8,7 +8,7 @@ import (
 )
 
 type ArticleGenerator interface {
-	NewArticle(url string, tags []string) (*models.Article, error)
+	NewArticle(url string) (*models.Article, error)
 }
 
 type articleGenerator struct {
@@ -36,7 +36,7 @@ var GetArticleGenerator = func() func() ArticleGenerator {
 	}
 }()
 
-func (g *articleGenerator) NewArticle(url string, tags []string) (*models.Article, error) {
+func (g *articleGenerator) NewArticle(url string) (*models.Article, error) {
 	title, content, kind, err := g.getTitleAndContentAndKind(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get title/content/kind from url")
@@ -47,7 +47,12 @@ func (g *articleGenerator) NewArticle(url string, tags []string) (*models.Articl
 		return nil, errors.Wrap(err, "failed to get unique title")
 	}
 
-	return models.NewArticle(kind, url, content, title, tags), nil
+	return &models.Article{
+		Kind:    kind,
+		URL:     url,
+		Content: content,
+		Title:   title,
+	}, nil
 }
 
 func (g *articleGenerator) getTitleAndContentAndKind(url string) (string, string, string, error) {
