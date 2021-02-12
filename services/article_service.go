@@ -14,7 +14,7 @@ type ArticleService interface {
 	CreateByURL(url string, tags common.Strings) (*models.Article, error)
 	Search(keyword string, offset, limit int) ([]*models.Article, int64, error)
 	UpdateTitle(id int64, newTitle string) error
-	UpdateTags(id int64, tags []string) error
+	UpdateTags(id int64, tags common.Strings) error
 	UpdateContent(id int64, content string) error
 	DeleteByIDs(ids []int64) error
 }
@@ -113,14 +113,16 @@ func (s *articleService) UpdateTitle(id int64, newTitle string) error {
 	return nil
 }
 
-func (s *articleService) UpdateTags(id int64, tags []string) error {
+func (s *articleService) UpdateTags(id int64, tags common.Strings) error {
 	article, err := s.articleRepository.GetByID(id)
 	if err != nil {
 		return errors.Wrap(err, "failed to get article")
 	}
 
-	toBeDeleted, toBePreserved := article.Tags.FilterExcluded(tags)
-	toBeAdded := models.Tags(tags).FilterExcluded(article.Tags)
+
+	toBePreserved, toBeDeleted := article.Tags.DivideByContained(tags)
+	toBeAdded := // TODO IMME
+	//toBeAdded := models.Tags(tags).FilterExcluded(article.Tags)
 
 	if len(toBeDeleted) > 0 {
 		if err := s.articleTagRepository.Delete(toBeDeleted); err != nil {

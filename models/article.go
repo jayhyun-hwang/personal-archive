@@ -18,7 +18,7 @@ type Article struct {
 	URL          string    `gorm:"column:url;type:varchar(256);not null" json:"url"`
 	Content      string    `gorm:"column:content;type:text" json:"content"`
 	Title        string    `gorm:"column:title;type:varchar(256);not null;uniqueIndex" json:"title"`
-	Tags         []*Tag   `gorm:"many2many:article_tag"`
+	Tags         Tags      `gorm:"many2many:article_tag"`
 	Created      time.Time `gorm:"column:created;type:datetime;not null" json:"created"`
 	LastModified time.Time `gorm:"column:last_modified;type:datetime;not null" json:"lastModified"`
 }
