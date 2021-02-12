@@ -8,14 +8,14 @@ import (
 )
 
 type ArticleTagController struct {
-	articleTagRepository repositories.ArticleTagRepository
-	articleRepository    repositories.ArticleRepository
+	tagRepository     repositories.TagRepository
+	articleRepository repositories.ArticleRepository
 }
 
 func NewArticleTagController() *ArticleTagController {
 	return &ArticleTagController{
-		articleTagRepository: repositories.GetArticleTagRepository(),
-		articleRepository:    repositories.GetArticleRepository(),
+		tagRepository:     repositories.GetTagRepository(),
+		articleRepository: repositories.GetArticleRepository(),
 	}
 }
 
@@ -56,7 +56,7 @@ func (c *ArticleTagController) UpdateTag(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	if err := c.articleTagRepository.UpdateTag(tag, req.Tag); err != nil {
+	if err := c.tagRepository.UpdateTag(tag, req.Tag); err != nil {
 		return ctx.InternalServerError(err, "failed to update tag")
 	}
 
