@@ -25,6 +25,7 @@ func (c *ArticleTagController) Route(e *echo.Echo) {
 }
 
 func (c *ArticleTagController) FindArticleTagCounts(ctx http.ContextExtended) error {
+	// TODO IMME
 	articleTagCounts, err := c.articleTagRepository.FindCounts()
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to find article tag counts")
