@@ -231,7 +231,7 @@ func (r *articleRepository) DeleteByIDs(ids []int64) error {
 func ensureArticleAssociationNotNil(articles []*models.Article) {
 	for _, article := range articles {
 		if article.Tags == nil {
-			article.Tags = models.ArticleTags{}
+			article.Tags = models.Tags{}
 		}
 	}
 }
