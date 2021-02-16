@@ -12,6 +12,8 @@ const GithubRepoWidget: FC<Props> = ({ user: userInput, repo: repoInput }) => {
   const [ user, setUser ] = useState(emptyUser)
   const [ repo, setRepo ] = useState(emptyRepo)
 
+  console.log({ userInput, repoInput })
+
   useEffect(() => {
     setFetching(true)
     window.fetch(`https://api.github.com/repos/${userInput}/${repoInput}`)
@@ -51,8 +53,9 @@ const GithubRepoWidget: FC<Props> = ({ user: userInput, repo: repoInput }) => {
   }
 
   return (
-    <Panel>
-      
+    <Panel shaded>
+      <img alt={user.login} src={user.avatarURL} />
+      <div>asdf</div>
     </Panel>
   )
   // TODO IMME

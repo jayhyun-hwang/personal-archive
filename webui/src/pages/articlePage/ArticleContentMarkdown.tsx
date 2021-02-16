@@ -1,7 +1,6 @@
 import React, { FC } from "react"
 import { Button } from "rsuite"
 import { useHistory } from "react-router-dom"
-import { If } from "react-if"
 import MarkdownContent from "../../component/common/MarkdownContent"
 import Article from "../../models/Article"
 import GithubRepoWidget from "../../component/GithubRepoWidget"
@@ -24,20 +23,22 @@ const ArticleContentMarkdown: FC<Props> = ({article}) => {
           EDIT
         </Button>
       </div>
-      <If condition={isGithubRepoURL(article.url)}>
-        <GithubRepoWidget
-          user={getGithubUser(article.url)}
-          repo={getGithubRepo(article.url)}
-        />
-      </If>
+      {renderWidget(article.url)}
       <MarkdownContent content={article.content}/>
     </>
   )
 }
 
-const githubRepoRegex = /^https:\/\/github\.com\/([a-zA-Z0-9\-]*)\/([a-zA-Z0-9\-]*)/gi
-const isGithubRepoURL = (url: string): boolean => githubRepoRegex.test(url)
-const getGithubUser = (url: string): string => githubRepoRegex.exec(url)![1]
-const getGithubRepo = (url: string): string => githubRepoRegex.exec(url)![2]
+const renderWidget = (url: string) => {
+  const githubRepoRegex = /^https:\/\/github\.com\/([a-zA-Z0-9-]*)\/([a-zA-Z0-9-]*)/gi
+  const matched = githubRepoRegex.exec(url) || []
+  if (matched.length < 3) {
+    return null
+  }
+
+  const [ user, repo ] = [ matched[1], matched[2] ]
+
+  return <GithubRepoWidget user={user} repo={repo} />
+}
 
 export default ArticleContentMarkdown
