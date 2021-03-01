@@ -38,3 +38,16 @@ func NewVersion(verInfo string) (*Version, error) {
 		Patch: patch,
 	}, nil
 }
+
+func (v *Version) IsLessThan(v1 *Version) bool {
+	if v.Major < v1.Major {
+		return true
+	}
+	if v.Minor < v1.Minor {
+		return true
+	}
+	if v.Patch < v1.Minor {
+		return true
+	}
+	return false
+}

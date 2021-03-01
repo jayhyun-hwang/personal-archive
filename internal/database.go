@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jaeyo/personal-archive/common"
 	"github.com/jaeyo/personal-archive/models"
-	"github.com/jaeyo/personal-archive/services"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"gorm.io/driver/sqlite"
@@ -57,7 +56,7 @@ func (d *DB) Init() error {
 		return errors.Wrap(err, "failed to auto migrate")
 	}
 
-	if err := d.migrate(); err != nil {
+	if err := migrate(); err != nil {
 		return errors.Wrap(err, "failed to migrate")
 	}
 
@@ -109,21 +108,6 @@ func (d *DB) SearchIDs(table, keyword string) ([]int64, error) {
 		ids = append(ids, id)
 	}
 	return ids, nil
-}
-
-func (d *DB) migrate() {
-	verInfo, err := services.GetAppService().GetSavedVerInfo()
-	if err != nil {
-		return errors.Wrap(err, "failed to get saved ver info")
-	}
-	ver, err := common.NewVersion(verInfo)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse version")
-	}
-
-	// TODO: migrate old article_tag
-	// TODO: remove old article_tag table
-
 }
 
 func ensureDirExist(dirPath string) {
