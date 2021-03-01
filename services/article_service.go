@@ -22,7 +22,6 @@ type ArticleService interface {
 type articleService struct {
 	articleGenerator        ArticleGenerator
 	articleRepository       repositories.ArticleRepository
-	articleTagRepository    repositories.ArticleTagRepository
 	articleSearchRepository repositories.ArticleSearchRepository
 	tagRepository           repositories.TagRepository
 }
@@ -35,7 +34,6 @@ var GetArticleService = func() func() ArticleService {
 			instance = &articleService{
 				articleGenerator:        GetArticleGenerator(),
 				articleRepository:       repositories.GetArticleRepository(),
-				articleTagRepository:    repositories.GetArticleTagRepository(),
 				articleSearchRepository: repositories.GetArticleSearchRepository(),
 				tagRepository:           repositories.GetTagRepository(),
 			}
@@ -161,9 +159,10 @@ func (s *articleService) DeleteByIDs(ids []int64) error {
 		return fmt.Errorf("invalid ids: %v", ids)
 	}
 
-	if err := s.articleTagRepository.DeleteByIDs(articles.ExtractTagIDs()); err != nil {
-		return errors.Wrap(err, "failed to delete article tag by ids")
-	}
+	// TODO: delete tag association
+	//if err := s.articleTagRepository.DeleteByIDs(articles.ExtractTagIDs()); err != nil {
+	//	return errors.Wrap(err, "failed to delete article tag by ids")
+	//}
 
 	if err := s.articleRepository.DeleteByIDs(ids); err != nil {
 		return errors.Wrap(err, "failed to delete article by ids")

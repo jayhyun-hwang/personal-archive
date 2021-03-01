@@ -46,7 +46,7 @@ var GetDatabase = func() func() *DB {
 func (d *DB) Init() error {
 	if err := d.AutoMigrate(
 		&models.Article{},
-		&models.ArticleTag{},
+		&models.Tag{},
 		&models.Misc{},
 		&models.Note{},
 		&models.Paragraph{},
@@ -56,6 +56,8 @@ func (d *DB) Init() error {
 		return errors.Wrap(err, "failed to auto migrate")
 	}
 	return nil
+
+	// TODO: remove old article_tag table
 }
 
 func (d *DB) Tables() ([]string, error) {

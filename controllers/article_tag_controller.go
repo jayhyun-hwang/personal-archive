@@ -25,8 +25,7 @@ func (c *ArticleTagController) Route(e *echo.Echo) {
 }
 
 func (c *ArticleTagController) FindArticleTagCounts(ctx http.ContextExtended) error {
-	// TODO IMME
-	articleTagCounts, err := c.articleTagRepository.FindCounts()
+	tagCounts, err := c.tagRepository.FindWithCount()
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to find article tag counts")
 	}
@@ -42,10 +41,10 @@ func (c *ArticleTagController) FindArticleTagCounts(ctx http.ContextExtended) er
 	}
 
 	return ctx.Success(reqres.ArticleTagCountsResponse{
-		OK:               true,
-		ArticleTagCounts: articleTagCounts,
-		UntaggedCount:    untaggedCount,
-		AllCount:         allCount,
+		OK:            true,
+		TagCounts:     tagCounts,
+		UntaggedCount: untaggedCount,
+		AllCount:      allCount,
 	})
 }
 

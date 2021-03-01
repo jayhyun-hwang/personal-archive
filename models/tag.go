@@ -31,3 +31,8 @@ func (t Tags) Filter(tagNames common.Strings) Tags {
 	}
 	return filtered
 }
+
+type TagCountDTO struct {
+	Tag
+	Count int64 `gorm:"column:cnt" json:"count"`
+}

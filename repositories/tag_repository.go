@@ -10,6 +10,7 @@ import (
 type TagRepository interface {
 	UpdateTag(tag, newTag string) error
 	FindByNames(names []string) (models.Tags, error)
+	FindWithCount() ([]*models.TagCountDTO, error)
 }
 
 type tagRepository struct {
@@ -47,4 +48,15 @@ func (r *tagRepository) FindByNames(names []string) (models.Tags, error) {
 		Where("name IN ?", names).
 		Find(&tags).Error
 	return tags, err
+}
+
+func (r *tagRepository) FindWithCount() ([]*models.TagCountDTO, error) {
+	var tagCounts []*models.TagCountDTO
+	err := r.database.
+		Model(&models.Tag{}).
+		Joins("LEFT JOIN article_tags AS at ON at.tag_id = tag.id").
+		Select("tag.id AS id, tag.name AS name, tag.is_favorite AS is_favorite, COUNT(*) AS cnt").
+		Group("tag.id").
+		Find(&tagCounts).Error
+	return tagCounts, err
 }
