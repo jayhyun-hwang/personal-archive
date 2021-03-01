@@ -3,15 +3,22 @@ import styled from "styled-components"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import remarkBreaks from "remark-breaks"
+import {Prism as SyntaxHighlighter} from "react-syntax-highlighter"
+import {nord} from "react-syntax-highlighter/dist/esm/styles/prism"
 
 
 interface Props {
   content: string
 }
 
+const renderers = {
+  code: ({language, value}: any) => <SyntaxHighlighter style={nord} language={language} children={value} />
+}
+
 const MarkdownContent: FC<Props> = ({ content }) => (
   <MarkdownDiv>
     <ReactMarkdown
+      renderers={renderers}
       plugins={[
         remarkGfm,
         remarkBreaks,
