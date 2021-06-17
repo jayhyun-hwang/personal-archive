@@ -3,27 +3,17 @@ package controllers
 import (
 	"github.com/jaeyo/personal-archive/common/http"
 	"github.com/jaeyo/personal-archive/controllers/reqres"
-	"github.com/jaeyo/personal-archive/repositories"
-	"github.com/jaeyo/personal-archive/services"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
 type NoteController struct {
-	noteService         services.NoteService
-	noteRepository      repositories.NoteRepository
-	articleRepository   repositories.ArticleRepository
-	paragraphRepository repositories.ParagraphRepository
+	app appIface
 }
 
-func NewNoteController() *NoteController {
-	return &NoteController{
-		noteService:         services.GetNoteService(),
-		noteRepository:      repositories.GetNoteRepository(),
-		articleRepository:   repositories.GetArticleRepository(),
-		paragraphRepository: repositories.GetParagraphRepository(),
-	}
+func NewNoteController(app appIface) *NoteController {
+	return &NoteController{app: app}
 }
 
 func (c *NoteController) Route(e *echo.Echo) {
@@ -44,7 +34,7 @@ func (c *NoteController) Route(e *echo.Echo) {
 func (c *NoteController) FindNotes(ctx http.ContextExtended) error {
 	page, offset, limit := ctx.PageOffsetLimit()
 
-	notes, cnt, err := c.noteRepository.FindAllWithPage(offset, limit)
+	notes, cnt, err := c.app.NoteRepository().FindAllWithPage(offset, limit)
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to find notes")
 	}
@@ -62,7 +52,7 @@ func (c *NoteController) GetNote(ctx http.ContextExtended) error {
 		return ctx.BadRequest("invalid id")
 	}
 
-	note, err := c.noteRepository.GetByID(id)
+	note, err := c.app.NoteRepository().GetByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ctx.NotFoundf("failed to get note: %s", err.Error())
@@ -70,7 +60,7 @@ func (c *NoteController) GetNote(ctx http.ContextExtended) error {
 		return ctx.InternalServerError(err, "failed to get note")
 	}
 
-	articles, err := c.articleRepository.FindByIDs(note.Paragraphs.ExtractReferenceArticleArticleIDs())
+	articles, err := c.app.ArticleRepository().FindByIDs(note.Paragraphs.ExtractReferenceArticleArticleIDs())
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to find articles")
 	}
@@ -93,7 +83,7 @@ func (c *NoteController) UpdateTitle(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	if err := c.noteService.UpdateTitle(id, req.Title); err != nil {
+	if err := c.app.NoteService().UpdateTitle(id, req.Title); err != nil {
 		return ctx.InternalServerError(err, "failed to update title")
 	}
 
@@ -111,7 +101,7 @@ func (c *NoteController) SwapParagraphs(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	if err := c.noteService.SwapParagraphs(id, req.AID, req.BID); err != nil {
+	if err := c.app.NoteService().SwapParagraphs(id, req.AID, req.BID); err != nil {
 		return ctx.InternalServerError(err, "failed to swap paragraphs")
 	}
 
@@ -133,7 +123,7 @@ func (c *NoteController) EditParagraph(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	if err := c.noteService.UpdateParagraph(id, paragraphID, req.Content, req.ReferenceArticleIDs, req.ReferenceWebURLs); err != nil {
+	if err := c.app.NoteService().UpdateParagraph(id, paragraphID, req.Content, req.ReferenceArticleIDs, req.ReferenceWebURLs); err != nil {
 		return ctx.InternalServerError(err, "failed to update paragraph")
 	}
 
@@ -146,7 +136,7 @@ func (c *NoteController) CreateNote(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	note, err := c.noteService.Create(req.Title, req.Content, req.ReferenceArticleIDs, req.ReferenceWebURLs)
+	note, err := c.app.NoteService().Create(req.Title, req.Content, req.ReferenceArticleIDs, req.ReferenceWebURLs)
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to create note")
 	}
@@ -168,7 +158,7 @@ func (c *NoteController) CreateParagraph(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	note, err := c.noteService.CreateParagraph(id, req.Content, req.ReferenceArticleIDs, req.ReferenceWebURLs)
+	note, err := c.app.NoteService().CreateParagraph(id, req.Content, req.ReferenceArticleIDs, req.ReferenceWebURLs)
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to create note")
 	}
@@ -180,7 +170,7 @@ func (c *NoteController) CreateParagraph(ctx http.ContextExtended) error {
 }
 
 func (c *NoteController) FindNoteTitles(ctx http.ContextExtended) error {
-	notes, err := c.noteRepository.FindTitles()
+	notes, err := c.app.NoteRepository().FindTitles()
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to find note titles")
 	}
@@ -199,7 +189,7 @@ func (c *NoteController) SearchNote(ctx http.ContextExtended) error {
 	}
 	page, offset, limit := ctx.PageOffsetLimit()
 
-	notes, cnt, err := c.noteService.Search(keyword, offset, limit)
+	notes, cnt, err := c.app.NoteService().Search(keyword, offset, limit)
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to search")
 	}
@@ -217,7 +207,7 @@ func (c *NoteController) DeleteNote(ctx http.ContextExtended) error {
 		return ctx.BadRequest("invalid id")
 	}
 
-	if err := c.noteService.DeleteByIDs([]int64{id}); err != nil {
+	if err := c.app.NoteService().DeleteByIDs([]int64{id}); err != nil {
 		return ctx.InternalServerError(err, "failed to delete note")
 	}
 
@@ -230,7 +220,7 @@ func (c *NoteController) DeleteNotes(ctx http.ContextExtended) error {
 		return ctx.BadRequest("invalid ids")
 	}
 
-	if err := c.noteService.DeleteByIDs(ids); err != nil {
+	if err := c.app.NoteService().DeleteByIDs(ids); err != nil {
 		return ctx.InternalServerError(err, "failed to delete notes")
 	}
 
@@ -247,7 +237,7 @@ func (c *NoteController) DeleteParagraph(ctx http.ContextExtended) error {
 		return ctx.BadRequest("invalid paragraph id")
 	}
 
-	if err := c.paragraphRepository.DeleteByIDAndNoteID(id, paragraphID); err != nil {
+	if err := c.app.ParagraphRepository().DeleteByIDAndNoteID(id, paragraphID); err != nil {
 		return ctx.InternalServerError(err, "failed to delete paragraph")
 	}
 

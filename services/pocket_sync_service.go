@@ -18,6 +18,10 @@ type pocketSyncService struct {
 	articleService ArticleService
 }
 
+func newPocketSyncService(app appIface) PocketSyncService {
+	return &pocketSyncService{}
+}
+
 var GetPocketSyncService = func() func() PocketSyncService {
 	var once sync.Once
 	var instance PocketSyncService

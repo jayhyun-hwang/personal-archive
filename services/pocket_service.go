@@ -40,6 +40,10 @@ type pocketService struct {
 	miscRepository repositories.MiscRepository
 }
 
+func newPocketService(app appIface) PocketService {
+	return &pocketService{}
+}
+
 var GetPocketService = func() func() PocketService {
 	var once sync.Once
 	var instance PocketService

@@ -22,6 +22,10 @@ type noteRepository struct {
 	noteSearchRepository NoteSearchRepository
 }
 
+func newNoteRepository(app appIface) NoteRepository {
+	return &noteRepository{}
+}
+
 var GetNoteRepository = func() func() NoteRepository {
 	var instance NoteRepository
 	var once sync.Once

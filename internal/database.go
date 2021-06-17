@@ -19,6 +19,10 @@ type DB struct {
 	*gorm.DB
 }
 
+func newDatabase() *DB {
+	return GetDatabase() // TODO IMME: fix
+}
+
 var GetDatabase = func() func() *DB {
 	var instance *DB
 	var once sync.Once

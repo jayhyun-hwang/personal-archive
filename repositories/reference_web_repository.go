@@ -14,6 +14,10 @@ type referenceWebRepository struct {
 	database *internal.DB
 }
 
+func newReferenceWebRepository(app appIface) ReferenceWebRepository {
+	return &referenceWebRepository{}
+}
+
 var GetReferenceWebRepository = func() func() ReferenceWebRepository {
 	var instance ReferenceWebRepository
 	var once sync.Once

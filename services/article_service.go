@@ -26,6 +26,10 @@ type articleService struct {
 	articleSearchRepository repositories.ArticleSearchRepository
 }
 
+func newArticleService(app appIface) ArticleService {
+	return &articleService{}
+}
+
 var GetArticleService = func() func() ArticleService {
 	var once sync.Once
 	var instance ArticleService

@@ -18,6 +18,10 @@ type articleTagRepository struct {
 	database *internal.DB
 }
 
+func newArticleTagRepository(app appIface) ArticleTagRepository {
+	return &articleTagRepository{}
+}
+
 var GetArticleTagRepository = func() func() ArticleTagRepository {
 	var instance ArticleTagRepository
 	var once sync.Once

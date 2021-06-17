@@ -3,18 +3,15 @@ package controllers
 import (
 	"github.com/jaeyo/personal-archive/common/http"
 	"github.com/jaeyo/personal-archive/controllers/reqres"
-	"github.com/jaeyo/personal-archive/services"
 	"github.com/labstack/echo/v4"
 )
 
 type SettingController struct {
-	pocketService services.PocketService
+	app appIface
 }
 
-func NewSettingController() *SettingController {
-	return &SettingController{
-		pocketService: services.GetPocketService(),
-	}
+func NewSettingController(app appIface) *SettingController {
+	return &SettingController{app: app}
 }
 
 func (c *SettingController) Route(e *echo.Echo) {
@@ -31,7 +28,7 @@ func (c *SettingController) ObtainPocketRequestToken(ctx http.ContextExtended) e
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	requestToken, err := c.pocketService.ObtainRequestToken(req.ConsumerKey, req.RedirectURI)
+	requestToken, err := c.app.PocketService().ObtainRequestToken(req.ConsumerKey, req.RedirectURI)
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to obtain request token")
 	}
@@ -43,7 +40,7 @@ func (c *SettingController) ObtainPocketRequestToken(ctx http.ContextExtended) e
 }
 
 func (c *SettingController) Auth(ctx http.ContextExtended) error {
-	isAllowed, err := c.pocketService.Auth()
+	isAllowed, err := c.app.PocketService().Auth()
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to authenticate pocket")
 	}
@@ -55,7 +52,7 @@ func (c *SettingController) Auth(ctx http.ContextExtended) error {
 }
 
 func (c *SettingController) Unauth(ctx http.ContextExtended) error {
-	if err := c.pocketService.Unauth(); err != nil {
+	if err := c.app.PocketService().Unauth(); err != nil {
 		return ctx.InternalServerError(err, "failed to unauth")
 	}
 
@@ -63,12 +60,12 @@ func (c *SettingController) Unauth(ctx http.ContextExtended) error {
 }
 
 func (c *SettingController) GetAuth(ctx http.ContextExtended) error {
-	isAuthenticated, username, isSyncOn, err := c.pocketService.GetAuth()
+	isAuthenticated, username, isSyncOn, err := c.app.PocketService().GetAuth()
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to get auth")
 	}
 
-	lastSyncTime, err := c.pocketService.GetLastSyncTime()
+	lastSyncTime, err := c.app.PocketService().GetLastSyncTime()
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to get last sync")
 	}
@@ -88,7 +85,7 @@ func (c *SettingController) ToggleSync(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	if err := c.pocketService.ToggleSync(req.IsSyncOn); err != nil {
+	if err := c.app.PocketService().ToggleSync(req.IsSyncOn); err != nil {
 		return ctx.InternalServerError(err, "failed to update sync status")
 	}
 

@@ -4,23 +4,17 @@ import (
 	"github.com/jaeyo/personal-archive/common/http"
 	"github.com/jaeyo/personal-archive/controllers/reqres"
 	"github.com/jaeyo/personal-archive/models"
-	"github.com/jaeyo/personal-archive/repositories"
-	"github.com/jaeyo/personal-archive/services"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
 type ArticleController struct {
-	articleService    services.ArticleService
-	articleRepository repositories.ArticleRepository
+	app appIface
 }
 
-func NewArticleController() *ArticleController {
-	return &ArticleController{
-		articleService:    services.GetArticleService(),
-		articleRepository: repositories.GetArticleRepository(),
-	}
+func NewArticleController(app appIface) *ArticleController {
+	return &ArticleController{app: app}
 }
 
 func (c *ArticleController) Route(e *echo.Echo) {
@@ -43,7 +37,7 @@ func (c *ArticleController) CreateArticleByURL(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	article, err := c.articleService.CreateByURL(req.URL, req.Tags)
+	article, err := c.app.ArticleService().CreateByURL(req.URL, req.Tags)
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to create article by url")
 	}
@@ -60,7 +54,7 @@ func (c *ArticleController) GetArticle(ctx http.ContextExtended) error {
 		return ctx.BadRequest("invalid id")
 	}
 
-	article, err := c.articleRepository.GetByID(id)
+	article, err := c.app.ArticleRepository().GetByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ctx.NotFoundf("failed to get article: %s", err.Error())
@@ -85,7 +79,7 @@ func (c *ArticleController) UpdateTitle(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	if err := c.articleService.UpdateTitle(id, req.Title); err != nil {
+	if err := c.app.ArticleService().UpdateTitle(id, req.Title); err != nil {
 		return ctx.InternalServerError(err, "failed to update title")
 	}
 
@@ -105,7 +99,7 @@ func (c *ArticleController) UpdateTags(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	if err := c.articleService.UpdateTags(id, req.Tags); err != nil {
+	if err := c.app.ArticleService().UpdateTags(id, req.Tags); err != nil {
 		return ctx.InternalServerError(err, "failed to update tags")
 	}
 
@@ -123,7 +117,7 @@ func (c *ArticleController) UpdateContent(ctx http.ContextExtended) error {
 		return ctx.BadRequestf("invalid request body: %s", err.Error())
 	}
 
-	if err := c.articleService.UpdateContent(id, req.Content); err != nil {
+	if err := c.app.ArticleService().UpdateContent(id, req.Content); err != nil {
 		return ctx.InternalServerError(err, "failed to update content")
 	}
 
@@ -136,22 +130,22 @@ func (c *ArticleController) FindArticlesByTag(ctx http.ContextExtended) error {
 
 	var (
 		articles []*models.Article
-		cnt int64
-		err error
+		cnt      int64
+		err      error
 	)
 
 	if tag == "untagged" {
-		articles, cnt, err = c.articleRepository.FindUntaggedWithPage(offset, limit)
+		articles, cnt, err = c.app.ArticleRepository().FindUntaggedWithPage(offset, limit)
 		if err != nil {
 			return ctx.InternalServerError(err, "failed to find untagged articles")
 		}
 	} else if tag == "all" {
-		articles, cnt, err = c.articleRepository.FindAllWithPage(offset, limit)
+		articles, cnt, err = c.app.ArticleRepository().FindAllWithPage(offset, limit)
 		if err != nil {
 			return ctx.InternalServerError(err, "failed to find all articles")
 		}
 	} else {
-		articles, cnt, err = c.articleRepository.FindByTagWithPage(tag, offset, limit)
+		articles, cnt, err = c.app.ArticleRepository().FindByTagWithPage(tag, offset, limit)
 		if err != nil {
 			return ctx.InternalServerError(err, "failed to find articles by tag")
 		}
@@ -171,7 +165,7 @@ func (c *ArticleController) SearchArticle(ctx http.ContextExtended) error {
 	}
 	page, offset, limit := ctx.PageOffsetLimit()
 
-	articles, cnt, err := c.articleService.Search(keyword, offset, limit)
+	articles, cnt, err := c.app.ArticleService().Search(keyword, offset, limit)
 	if err != nil {
 		return ctx.InternalServerError(err, "failed to search")
 	}
@@ -189,7 +183,7 @@ func (c *ArticleController) DeleteArticle(ctx http.ContextExtended) error {
 		return ctx.BadRequest("invalid id")
 	}
 
-	if err := c.articleService.DeleteByIDs([]int64{id}); err != nil {
+	if err := c.app.ArticleService().DeleteByIDs([]int64{id}); err != nil {
 		return ctx.InternalServerError(err, "failed to delete article")
 	}
 
@@ -202,8 +196,8 @@ func (c *ArticleController) DeleteArticles(ctx http.ContextExtended) error {
 		return ctx.BadRequest("invalid ids")
 	}
 
-	if err := c.articleService.DeleteByIDs(ids); err != nil {
-		return ctx.InternalServerError(err,"failed to delete articles")
+	if err := c.app.ArticleService().DeleteByIDs(ids); err != nil {
+		return ctx.InternalServerError(err, "failed to delete articles")
 	}
 
 	return ctx.Success(http.SuccessResponse{OK: true})

@@ -16,10 +16,16 @@ type AppService interface {
 }
 
 type appService struct {
+	// TODO IMME
 	miscRepository repositories.MiscRepository
 	versionReader  common.VersionReader
 }
 
+func newAppService(app appIface) AppService {
+	return &appService{}
+}
+
+// TODO IMME: remove all singleton pattern
 var GetAppService = func() func() AppService {
 	var instance AppService
 	var once sync.Once

@@ -18,6 +18,10 @@ type paragraphRepository struct {
 	database *internal.DB
 }
 
+func newParagraphRepository(app appIface) ParagraphRepository {
+	return &paragraphRepository{}
+}
+
 var GetParagraphRepository = func() func() ParagraphRepository {
 	var instance ParagraphRepository
 	var once sync.Once

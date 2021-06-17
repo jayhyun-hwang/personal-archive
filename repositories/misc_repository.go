@@ -18,6 +18,10 @@ type miscRepository struct {
 	database *internal.DB
 }
 
+func newMiscRepository(app appIface) MiscRepository {
+	return &miscRepository{}
+}
+
 var GetMiscRepository = func() func() MiscRepository {
 	var instance MiscRepository
 	var once sync.Once

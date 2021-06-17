@@ -29,6 +29,10 @@ type noteService struct {
 	referenceWebRepository     repositories.ReferenceWebRepository
 }
 
+func newNoteService(app appIface) NoteService {
+	return &noteService{}
+}
+
 var GetNoteService = func() func() NoteService {
 	var instance NoteService
 	var once sync.Once

@@ -14,6 +14,10 @@ type referenceArticleRepository struct {
 	database *internal.DB
 }
 
+func newReferenceArticleRepository(app appIface) ReferenceArticleRepository {
+	return &referenceArticleRepository{}
+}
+
 var GetReferenceArticleRepository = func() func() ReferenceArticleRepository {
 	var instance ReferenceArticleRepository
 	var once sync.Once
